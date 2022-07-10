@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}CategoryFilterItem index{% endblock %}
+
+{% block body %}
+    <h1>CategoryFilterItem index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Value</th>
+                <th>Created_at</th>
+                <th>Updated_at</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for category_filter_item in category_filter_items %}
+            <tr>
+                <td>{{ category_filter_item.id }}</td>
+                <td>{{ category_filter_item.name }}</td>
+                <td>{{ category_filter_item.value }}</td>
+                <td>{{ category_filter_item.createdAt ? category_filter_item.createdAt|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ category_filter_item.updatedAt ? category_filter_item.updatedAt|date('Y-m-d H:i:s') : '' }}</td>
+                <td>
+                    <a href="{{ path('app_category_filter_item_show', {'id': category_filter_item.id}) }}">show</a>
+                    <a href="{{ path('app_category_filter_item_edit', {'id': category_filter_item.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_category_filter_item_new') }}">Create new</a>
+{% endblock %}
