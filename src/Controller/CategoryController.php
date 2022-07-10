@@ -5,74 +5,72 @@ namespace App\Controller;
 use App\Entity\Category;
 use App\Form\CategoryType;
 use App\Repository\CategoryRepository;
+use DateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/category')]
-class CategoryController extends AbstractController
+#[Route('/api/category')]
+class CategoryController extends AbstractApiController
 {
     #[Route('/', name: 'app_category_index', methods: ['GET'])]
     public function index(CategoryRepository $categoryRepository): Response
     {
-        return $this->render('category/index.html.twig', [
-            'categories' => $categoryRepository->findAll(),
-        ]);
+        return $this->respond($categoryRepository->findAll());
     }
 
-    #[Route('/new', name: 'app_category_new', methods: ['GET', 'POST'])]
+    #[Route('/new', name: 'app_category_new', methods: ['POST'])]
     public function new(Request $request, CategoryRepository $categoryRepository): Response
     {
-        $category = new Category();
-        $form = $this->createForm(CategoryType::class, $category);
+        $form = $this->buildForm(CategoryType::class);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $categoryRepository->add($category, true);
-
-            return $this->redirectToRoute('app_category_index', [], Response::HTTP_SEE_OTHER);
+        if (!$form->isSubmitted() || !$form->isValid()) {
+            return $this->respond($form, Response::HTTP_UNPROCESSABLE_ENTITY);
         }
+        /**
+         * @var Category $category
+         */
+        $category = $form->getData();
+        $category->setCreatedAt(new DateTime());
+        $category->setUpdatedAt(new DateTime());
+        $categoryRepository->add($category, true);
 
-        return $this->renderForm('category/new.html.twig', [
-            'category' => $category,
-            'form' => $form,
-        ]);
+        return $this->json($category, Response::HTTP_CREATED);
     }
 
     #[Route('/{id}', name: 'app_category_show', methods: ['GET'])]
     public function show(Category $category): Response
     {
-        return $this->render('category/show.html.twig', [
-            'category' => $category,
-        ]);
+        return $this->respond($category, Response::HTTP_OK);
     }
 
-    #[Route('/{id}/edit', name: 'app_category_edit', methods: ['GET', 'POST'])]
+    #[Route('/{id}/update', name: 'app_category_edit', methods: ['PUT'])]
     public function edit(Request $request, Category $category, CategoryRepository $categoryRepository): Response
     {
-        $form = $this->createForm(CategoryType::class, $category);
+        $form = $this->buildForm(CategoryType::class);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $categoryRepository->add($category, true);
-
-            return $this->redirectToRoute('app_category_index', [], Response::HTTP_SEE_OTHER);
+        if (!$form->isSubmitted() || !$form->isValid()) {
+            return $this->respond($form, Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        return $this->renderForm('category/edit.html.twig', [
-            'category' => $category,
-            'form' => $form,
-        ]);
+        /**
+         * @var Category $category
+         */
+        $category = $form->getData();
+        $category->setUpdatedAt(new DateTime());
+        $categoryRepository->add($category, true);
+
+        return $this->respond($category, Response::HTTP_OK);
     }
 
     #[Route('/{id}', name: 'app_category_delete', methods: ['POST'])]
-    public function delete(Request $request, Category $category, CategoryRepository $categoryRepository): Response
+    public function delete(Category $category, CategoryRepository $categoryRepository): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$category->getId(), $request->request->get('_token'))) {
-            $categoryRepository->remove($category, true);
-        }
+        $categoryRepository->remove($category);
 
-        return $this->redirectToRoute('app_category_index', [], Response::HTTP_SEE_OTHER);
+        return $this->respond([], Response::HTTP_NO_CONTENT);
     }
 }
