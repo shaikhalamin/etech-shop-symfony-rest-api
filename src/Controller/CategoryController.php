@@ -2,18 +2,21 @@
 
 namespace App\Controller;
 
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
+use App\Repository\CategoryRepository;
+use App\Service\FileUploader;
 use App\Entity\Category;
 use App\Form\CategoryType;
-use App\Repository\CategoryRepository;
 use DateTime;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/api/category')]
 class CategoryController extends AbstractApiController
 {
+    const CATEGORY_IMAGE_UPLOAD_PATH = '/categories/icon/';
+
     #[Route('/', name: 'app_category_index', methods: ['GET'])]
     public function index(CategoryRepository $categoryRepository): Response
     {
@@ -21,7 +24,7 @@ class CategoryController extends AbstractApiController
     }
 
     #[Route('/new', name: 'app_category_new', methods: ['POST'])]
-    public function new(Request $request, CategoryRepository $categoryRepository): Response
+    public function new(Request $request, CategoryRepository $categoryRepository, FileUploader $fileUploader): Response
     {
         $form = $this->buildForm(CategoryType::class);
         $form->handleRequest($request);
@@ -33,11 +36,20 @@ class CategoryController extends AbstractApiController
          * @var Category $category
          */
         $category = $form->getData();
+
+        /** @var UploadedFile $categoryFile */
+        $categoryFile = $form->get('image')->getData();
+
+        if ($categoryFile) {
+            $uploadedFileName = $fileUploader->upload($categoryFile, $category->getSlug(), self::CATEGORY_IMAGE_UPLOAD_PATH);
+            $category->setImage($uploadedFileName);
+        }
+
         $category->setCreatedAt(new DateTime());
         $category->setUpdatedAt(new DateTime());
         $categoryRepository->add($category, true);
 
-        return $this->json($category, Response::HTTP_CREATED);
+        return $this->respond($category, Response::HTTP_CREATED);
     }
 
     #[Route('/{id}', name: 'app_category_show', methods: ['GET'])]
