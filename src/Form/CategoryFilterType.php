@@ -2,7 +2,10 @@
 
 namespace App\Form;
 
+use App\Entity\Category;
 use App\Entity\CategoryFilter;
+use App\Repository\CategoryRepository;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -13,9 +16,9 @@ class CategoryFilterType extends AbstractType
     {
         $builder
             ->add('name')
-            ->add('created_at')
-            ->add('updated_at')
-            ->add('category')
+            ->add('category', EntityType::class, [
+                'class' => Category::class
+            ])
         ;
     }
 

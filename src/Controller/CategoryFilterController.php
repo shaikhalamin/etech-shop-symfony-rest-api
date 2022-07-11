@@ -2,50 +2,49 @@
 
 namespace App\Controller;
 
-use App\Entity\CategoryFilter;
-use App\Form\CategoryFilterType;
-use App\Repository\CategoryFilterRepository;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Repository\CategoryFilterRepository;
+use App\Repository\CategoryRepository;
+use App\Entity\CategoryFilter;
+use App\Form\CategoryFilterType;
+use DateTime;
 
-#[Route('/category/filter')]
-class CategoryFilterController extends AbstractController
+#[Route('/api/category/filter')]
+class CategoryFilterController extends AbstractApiController
 {
-    #[Route('/', name: 'app_category_filter_index', methods: ['GET'])]
+    #[Route('/list', name: 'app_category_filter_index', methods: ['GET'])]
     public function index(CategoryFilterRepository $categoryFilterRepository): Response
     {
-        return $this->render('category_filter/index.html.twig', [
-            'category_filters' => $categoryFilterRepository->findAll(),
-        ]);
+        return $this->respond($categoryFilterRepository->findAll());
     }
 
-    #[Route('/new', name: 'app_category_filter_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, CategoryFilterRepository $categoryFilterRepository): Response
+    #[Route('/new', name: 'app_category_filter_new', methods: ['POST'])]
+    public function new(Request $request, CategoryFilterRepository $categoryFilterRepository, CategoryRepository $categoryRepository): Response
     {
-        $categoryFilter = new CategoryFilter();
-        $form = $this->createForm(CategoryFilterType::class, $categoryFilter);
+        $form = $this->buildForm(CategoryFilterType::class);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $categoryFilterRepository->add($categoryFilter, true);
-
-            return $this->redirectToRoute('app_category_filter_index', [], Response::HTTP_SEE_OTHER);
+        if (!$form->isSubmitted() || !$form->isValid()) {
+            return $this->respond($form, Response::HTTP_UNPROCESSABLE_ENTITY);
         }
+        /**
+         * @var CategoryFilter $categoryFilter
+         */
+        $categoryFilter = $form->getData();
+        $categoryFilter->setCreatedAt(new DateTime());
+        $categoryFilter->setUpdatedAt(new DateTime());
 
-        return $this->renderForm('category_filter/new.html.twig', [
-            'category_filter' => $categoryFilter,
-            'form' => $form,
-        ]);
+        $categoryFilterRepository->add($categoryFilter, true);
+
+        return $this->respond($categoryFilter, Response::HTTP_CREATED); 
     }
 
     #[Route('/{id}', name: 'app_category_filter_show', methods: ['GET'])]
     public function show(CategoryFilter $categoryFilter): Response
     {
-        return $this->render('category_filter/show.html.twig', [
-            'category_filter' => $categoryFilter,
-        ]);
+        return $this->respond($categoryFilter, Response::HTTP_OK);
     }
 
     #[Route('/{id}/edit', name: 'app_category_filter_edit', methods: ['GET', 'POST'])]

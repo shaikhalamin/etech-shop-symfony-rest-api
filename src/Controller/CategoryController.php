@@ -20,7 +20,7 @@ class CategoryController extends AbstractApiController
     #[Route('/', name: 'app_category_index', methods: ['GET'])]
     public function index(CategoryRepository $categoryRepository): Response
     {
-        return $this->respond($categoryRepository->findAll());
+        return $this->respond($categoryRepository->findAll(), Response::HTTP_OK);
     }
 
     #[Route('/new', name: 'app_category_new', methods: ['POST'])]

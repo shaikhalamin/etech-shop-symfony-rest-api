@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Category;
 use App\Entity\CategoryFilter;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -39,20 +40,17 @@ class CategoryFilterRepository extends ServiceEntityRepository
         }
     }
 
-//    /**
-//     * @return CategoryFilter[] Returns an array of CategoryFilter objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('c')
-//            ->andWhere('c.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('c.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    /**
+     * @return CategoryFilter[] Returns an array of CategoryFilter objects
+     */
+    public function findNames(): array
+    {
+        return $this->createQueryBuilder('cf')
+            // ->innerJoin(Category::class, 'c', 'WITH', 'c.id = cf.category')
+            ->select('cf.name')
+            ->getQuery()
+            ->getResult();
+    }
 
 //    public function findOneBySomeField($value): ?CategoryFilter
 //    {

@@ -17,8 +17,8 @@ abstract class AbstractApiController extends AbstractFOSRestController
         return $this->container->get('form.factory')->createNamed('', $type, $data, $options);
     }
 
-    protected function respond($data, int $statusCode = Response::HTTP_OK): Response
+    protected function respond($data, int $statusCode = Response::HTTP_OK, array $headers = []): Response
     {
-        return $this->handleView($this->view($data, $statusCode));
+        return $this->handleView($this->view($data, $statusCode, $headers));
     }
 }
