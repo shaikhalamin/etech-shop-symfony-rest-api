@@ -5,74 +5,70 @@ namespace App\Controller;
 use App\Entity\CategoryFilterItem;
 use App\Form\CategoryFilterItemType;
 use App\Repository\CategoryFilterItemRepository;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use DateTime;
 
-#[Route('/category/filter/item')]
-class CategoryFilterItemController extends AbstractController
+#[Route('/api/category/filter/item')]
+class CategoryFilterItemController extends AbstractApiController
 {
-    #[Route('/', name: 'app_category_filter_item_index', methods: ['GET'])]
+    #[Route('/list', name: 'app_category_filter_item_index', methods: ['GET'])]
     public function index(CategoryFilterItemRepository $categoryFilterItemRepository): Response
     {
-        return $this->render('category_filter_item/index.html.twig', [
-            'category_filter_items' => $categoryFilterItemRepository->findAll(),
-        ]);
+        return $this->respond($categoryFilterItemRepository->findAll());
     }
 
-    #[Route('/new', name: 'app_category_filter_item_new', methods: ['GET', 'POST'])]
+    #[Route('/new', name: 'app_category_filter_item_new', methods: ['POST'])]
     public function new(Request $request, CategoryFilterItemRepository $categoryFilterItemRepository): Response
     {
-        $categoryFilterItem = new CategoryFilterItem();
-        $form = $this->createForm(CategoryFilterItemType::class, $categoryFilterItem);
+        $form = $this->buildForm(CategoryFilterItemType::class);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $categoryFilterItemRepository->add($categoryFilterItem, true);
-
-            return $this->redirectToRoute('app_category_filter_item_index', [], Response::HTTP_SEE_OTHER);
+        if (!$form->isSubmitted() || !$form->isValid()) {
+            return $this->respond($form, Response::HTTP_UNPROCESSABLE_ENTITY);
         }
+        /**
+         * @var CategoryFilterItem $categoryFilterItem
+         */
+        $categoryFilterItem = $form->getData();
+        $categoryFilterItem->setCreatedAt(new DateTime());
+        $categoryFilterItem->setUpdatedAt(new DateTime());
+        $categoryFilterItemRepository->add($categoryFilterItem, true);
 
-        return $this->renderForm('category_filter_item/new.html.twig', [
-            'category_filter_item' => $categoryFilterItem,
-            'form' => $form,
-        ]);
+        return $this->respond($categoryFilterItem, Response::HTTP_CREATED);
     }
 
-    #[Route('/{id}', name: 'app_category_filter_item_show', methods: ['GET'])]
+    #[Route('/details/{id}', name: 'app_category_filter_item_show', methods: ['GET'])]
     public function show(CategoryFilterItem $categoryFilterItem): Response
     {
-        return $this->render('category_filter_item/show.html.twig', [
-            'category_filter_item' => $categoryFilterItem,
-        ]);
+        return $this->respond($categoryFilterItem, Response::HTTP_OK);
     }
 
-    #[Route('/{id}/edit', name: 'app_category_filter_item_edit', methods: ['GET', 'POST'])]
+    #[Route('/update/{id}', name: 'app_category_filter_item_edit', methods: ['POST'])]
     public function edit(Request $request, CategoryFilterItem $categoryFilterItem, CategoryFilterItemRepository $categoryFilterItemRepository): Response
     {
-        $form = $this->createForm(CategoryFilterItemType::class, $categoryFilterItem);
+        $form = $this->buildForm(CategoryFilterItemType::class);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $categoryFilterItemRepository->add($categoryFilterItem, true);
-
-            return $this->redirectToRoute('app_category_filter_item_index', [], Response::HTTP_SEE_OTHER);
+        if (!$form->isSubmitted() || !$form->isValid()) {
+            return $this->respond($form, Response::HTTP_UNPROCESSABLE_ENTITY);
         }
+        /**
+         * @var CategoryFilterItem $categoryFilterItem
+         */
+        $categoryFilterItem = $form->getData();
+        $categoryFilterItem->setUpdatedAt(new DateTime());
+        $categoryFilterItemRepository->add($categoryFilterItem, true);
 
-        return $this->renderForm('category_filter_item/edit.html.twig', [
-            'category_filter_item' => $categoryFilterItem,
-            'form' => $form,
-        ]);
+        return $this->respond($categoryFilterItem, Response::HTTP_CREATED);
     }
 
     #[Route('/{id}', name: 'app_category_filter_item_delete', methods: ['POST'])]
     public function delete(Request $request, CategoryFilterItem $categoryFilterItem, CategoryFilterItemRepository $categoryFilterItemRepository): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$categoryFilterItem->getId(), $request->request->get('_token'))) {
-            $categoryFilterItemRepository->remove($categoryFilterItem, true);
-        }
+        $categoryFilterItemRepository->remove($categoryFilterItem);
 
-        return $this->redirectToRoute('app_category_filter_item_index', [], Response::HTTP_SEE_OTHER);
+        return $this->respond([], Response::HTTP_NO_CONTENT);
     }
 }
