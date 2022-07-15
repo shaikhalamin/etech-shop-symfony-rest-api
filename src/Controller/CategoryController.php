@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\UrlHelper;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
@@ -53,8 +54,10 @@ class CategoryController extends AbstractApiController
     }
 
     #[Route('/{id}', name: 'app_category_show', methods: ['GET'])]
-    public function show(Category $category): Response
+    public function show(Category $category, UrlHelper $urlHelper): Response
     {
+        $categoryImagePath = $urlHelper->getAbsoluteUrl(sprintf('%s%s', $this->getParameter('images_directory'), self::CATEGORY_IMAGE_UPLOAD_PATH));
+        $category->setImage(sprintf('%s%s', $categoryImagePath, $category->getImage()));
         return $this->respond($category, Response::HTTP_OK);
     }
 

@@ -2,15 +2,18 @@
 
 namespace App\Service;
 
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class FileUploader
 {
     private $targetDirectory;
+    private $projectDirectory;
 
-    public function __construct($targetDirectory)
+    public function __construct(string $projectDirectory, string $targetDirectory)
     {
+        $this->projectDirectory = $projectDirectory;
         $this->targetDirectory = $targetDirectory;
     }
 
@@ -28,6 +31,6 @@ class FileUploader
 
     public function getTargetDirectory()
     {
-        return $this->targetDirectory;
+        return sprintf('%s/public%s', $this->projectDirectory, $this->targetDirectory);
     }
 }
