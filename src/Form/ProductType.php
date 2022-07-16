@@ -11,6 +11,9 @@ use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormError;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Validator\Constraints\NotNull;
@@ -96,6 +99,18 @@ class ProductType extends AbstractType
                     ),
                 ]
             ]);
+
+
+        $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) {
+            /** @var Product $product */
+            $product = $event->getData();
+
+            $form = $event->getForm();
+
+            if (empty($product['features'])) {
+                $form->get('features')->addError(new FormError("product features must be matched with category types"));
+            }
+        });
     }
 
     public function configureOptions(OptionsResolver $resolver): void

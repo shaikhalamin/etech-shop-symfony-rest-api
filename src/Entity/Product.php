@@ -25,7 +25,7 @@ class Product
     #[ORM\Column(type: 'integer')]
     private $quantity;
 
-    #[ORM\Column(type: 'json')]
+    #[ORM\Column(type: 'json', nullable: false)]
     private $features = [];
 
     #[ORM\Column(type: 'boolean')]

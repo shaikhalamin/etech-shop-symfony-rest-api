@@ -22,13 +22,14 @@ class ProductController extends AbstractApiController
     #[Route('/new', name: 'app_product_new', methods: ['POST'])]
     public function new(Request $request, ProductRepository $productRepository, FileUploader $fileUploader): Response
     {
+        $product = new Product();
         $form = $this->buildForm(ProductType::class);
         $form->handleRequest($request);
-
         if (!$form->isSubmitted() || !$form->isValid()) {
             return $this->respond($form, Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
+        dd($form->getData());
         /**
          * @var Product $product
          */
