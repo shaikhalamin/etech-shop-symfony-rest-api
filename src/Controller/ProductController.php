@@ -5,39 +5,48 @@ namespace App\Controller;
 use App\Entity\Product;
 use App\Form\ProductType;
 use App\Repository\ProductRepository;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Service\FileUploader;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/product')]
-class ProductController extends AbstractController
+#[Route('/api/product')]
+class ProductController extends AbstractApiController
 {
     #[Route('/', name: 'app_product_index', methods: ['GET'])]
     public function index(ProductRepository $productRepository): Response
     {
-        return $this->render('product/index.html.twig', [
-            'products' => $productRepository->findAll(),
-        ]);
+        return $this->respond($productRepository->findAll(), Response::HTTP_OK);
     }
 
-    #[Route('/new', name: 'app_product_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, ProductRepository $productRepository): Response
+    #[Route('/new', name: 'app_product_new', methods: ['POST'])]
+    public function new(Request $request, ProductRepository $productRepository, FileUploader $fileUploader): Response
     {
-        $product = new Product();
-        $form = $this->createForm(ProductType::class, $product);
+        $form = $this->buildForm(ProductType::class);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $productRepository->add($product, true);
-
-            return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
+        if (!$form->isSubmitted() || !$form->isValid()) {
+            return $this->respond($form, Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        return $this->renderForm('product/new.html.twig', [
-            'product' => $product,
-            'form' => $form,
-        ]);
+        /**
+         * @var Product $product
+         */
+        $product = $form->getData();
+
+        /** @var UploadedFile $productFile */
+        $productFile = $form->get('image')->getData();
+
+        // if ($productFile) {
+        //     $uploadedFileName = $fileUploader->upload($productFile, $category->getSlug(), self::CATEGORY_IMAGE_UPLOAD_PATH);
+        //     $category->setImage($uploadedFileName);
+        // }
+
+        // $category->setCreatedAt(new DateTime());
+        // $category->setUpdatedAt(new DateTime());
+        // $categoryRepository->add($category, true);
+
+        // return $this->respond($category, Response::HTTP_CREATED);
     }
 
     #[Route('/{id}', name: 'app_product_show', methods: ['GET'])]

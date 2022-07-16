@@ -29,7 +29,7 @@ class Product
     private $features = [];
 
     #[ORM\Column(type: 'boolean')]
-    private $is_featured;
+    private $is_featured = false;
 
     #[ORM\ManyToOne(targetEntity: Category::class, inversedBy: 'products')]
     private $category;
@@ -39,6 +39,12 @@ class Product
 
     #[ORM\Column(type: 'datetime')]
     private $updated_at;
+
+    #[ORM\Column(type: 'string', length: 255)]
+    private $image;
+
+    #[ORM\Column(type: 'string', length: 255)]
+    private $productCode;
 
     public function getId(): ?int
     {
@@ -149,6 +155,30 @@ class Product
     public function setUpdatedAt(\DateTimeInterface $updated_at): self
     {
         $this->updated_at = $updated_at;
+
+        return $this;
+    }
+
+    public function getImage(): ?string
+    {
+        return $this->image;
+    }
+
+    public function setImage(string $image): self
+    {
+        $this->image = $image;
+
+        return $this;
+    }
+
+    public function getProductCode(): ?string
+    {
+        return $this->productCode;
+    }
+
+    public function setProductCode(string $productCode): self
+    {
+        $this->productCode = $productCode;
 
         return $this;
     }
